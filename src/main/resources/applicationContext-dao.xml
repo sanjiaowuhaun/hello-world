@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       ">
+    <!--dao对象-->
+    <!--自动扫描指定包及其子包下的接口，
+    找到跟接口同名的xml文件加载(加载sql映射文件),
+    把每一个接口通过MapperFactoryBean创建一个对应的mapper对象，
+    对象的名字就是默认命名规则的名字 UserMapper ==> userMapper -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="cn.smbms.dao"/>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>
+
+<!--    <context:component-scan base-package="cn.smbms.service"/>-->
+
+<!--    <tx:annotation-driven transaction-manager="transactionManager"/>-->
+</beans>

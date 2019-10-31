@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+    <!--加载properties文件-->
+    <context:property-placeholder location="classpath:database.properties"/>
+    <!--dataSource（数据源对象-->
+<!--
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+          p:driverClassName="${jdbc.driver}"
+          p:url="${jdbc.url}"
+          p:username="${jdbc.username}"
+          p:password="${jdbc.password}"/>
+-->
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+    <!--sqlSessionFactory(会话工厂)-->
+    <bean id="sqlSessionFactory"
+          class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--类型别名的包-->
+        <property name="typeAliasesPackage" value="cn.smbms.pojo"/>
+        <!--注入数据源-->
+        <property name="dataSource" ref="dataSource"/>
+        <!--指定sql映射文件的位置-->
+        <property name="mapperLocations" value="classpath*:cn/smbms/dao/**/*.xml"/>
+        <!--相当于settings标签的配置-->
+        <property name="configuration">
+            <bean class="org.apache.ibatis.session.Configuration">
+<!--                <property name="logImpl" value="org.apache.ibatis.logging.log4j.Log4jImpl"/>-->
+                <property name="autoMappingBehavior" value="PARTIAL"/>
+            </bean>
+        </property>
+    </bean>
+    <!--dao对象-->
+    <!--自动扫描指定包及其子包下的接口，
+    找到跟接口同名的xml文件加载(加载sql映射文件),
+    把每一个接口通过MapperFactoryBean创建一个对应的mapper对象，
+    对象的名字就是默认命名规则的名字 UserMapper ==> userMapper -->
+<!--
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="cn.smbms.dao"/>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>
+-->
+
+<!--    <context:component-scan base-package="cn.smbms.service"/>-->
+
+    <!--定义事务管理器-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <!--注入dataSource-->
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+        <!--定义事务规则-->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="add*"/>
+            <tx:method name="insert*"/>
+            <tx:method name="del*"/>
+            <tx:method name="update*"/>
+            <tx:method name="modify*"/>
+            <tx:method name="*" read-only="true"/>
+        </tx:attributes>
+    </tx:advice>
+    <!--使用aop来再目标类的目标方法上关联事务操作-->
+    <aop:config>
+        <!--事务一般关联service-->
+        <aop:pointcut id="servicePointcut" expression="execution(* cn.smbms.service..*.*(..))"/>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="servicePointcut"/>
+    </aop:config>
+    <!--开启注解式的事务
+        在需要使用事务的类或方法上面加注解： @Transactional
+    -->
+<!--    <tx:annotation-driven transaction-manager="transactionManager"/>-->
+</beans>
